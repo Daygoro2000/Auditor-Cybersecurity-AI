@@ -1,0 +1,232 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        -192
+      ],
+      "id": "b1905dc3-9866-4dc6-abca-b61d6bab1e87",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "182vHn1zvBdfiibIImEHGyhN951yMwsiE",
+          "mode": "list",
+          "cachedResultName": "MIDTECH_Politica_Seguridad_PSI.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/182vHn1zvBdfiibIImEHGyhN951yMwsiE/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -512,
+        -192
+      ],
+      "id": "460de89f-3acd-49df-a304-232eb9cbc33d",
+      "name": "Download file",
+      "credentials": {
+        "googleApi": {
+          "id": "bu4psrBugyZNCkyZ",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -352,
+        -192
+      ],
+      "id": "4b0dd82a-2de1-4559-8ccd-da908a4c48be",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "chunks",
+          "mode": "list",
+          "cachedResultName": "chunks"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        -288
+      ],
+      "id": "26f41826-9634-4ded-8083-9cbff3a7bf42",
+      "name": "Supabase Vector Store",
+      "notesInFlow": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "QsUTMwEsqKZXTfvy",
+          "name": "Supabase MIDTECH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -48
+      ],
+      "id": "b802cef6-dfb7-4ad3-b171-05d7ba2882bd",
+      "name": "Embeddings Ollama",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "notesInFlow": false,
+      "credentials": {
+        "ollamaApi": {
+          "id": "CMbdNx7bHcXcQVbV",
+          "name": "Ollama MIDTECH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "midtech"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "c3a9df8c-46f6-4647-9ab9-219f98c30a26",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 1500,
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        112
+      ],
+      "id": "d2cc4748-62b9-4517-985f-c2f31c125b7c",
+      "name": "Recursive Character Text Splitter"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        []
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b7fc4bd9-a652-4ea8-9d9f-4173198453d7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ac5c6741bfbefdcae9e4ef3f3b9c01fe41cf2b3f7d9fcd44c6721760d6ccac0"
+  },
+  "id": "Jlj9ND4TeQD0waZm",
+  "tags": []
+}
