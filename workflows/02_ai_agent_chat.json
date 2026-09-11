@@ -1,0 +1,210 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres un asistente experto en ciberseguridad y compliance para MIDTECH S.A., \nempresa biotecnológica y farmacéutica con sede en Zaragoza que presta \nservicios a hospitales públicos y privados.\n\nDOCUMENTOS DISPONIBLES:\n- Política interna de MIDTECH (source: midtech)\n- GDPR Reglamento UE 2016/679 (source: gdpr)\n- ISO 27001 (source: iso27001)\n- ENS Esquema Nacional de Seguridad (source: ens)\n\nREGLAS OBLIGATORIAS — NUNCA las ignores:\n- Cita SIEMPRE el documento y sección de donde extraes cada afirmación\n- NUNCA respondas con afirmaciones genéricas sin respaldo documental\n- Responde SIEMPRE en español\n\nCAPACIDAD 1 — ANÁLISIS DE POLÍTICA:\nSi el usuario pide analizar la política de MIDTECH responde con:\n## Áreas cubiertas\nLista cada área con cita literal de la sección correspondiente de source:midtech\n\n## Nivel de cobertura\nPara cada área indica si es completo, parcial o superficial y por qué\n\n## Áreas ausentes\nLista qué ámbitos de seguridad no aparecen en la política citando \nqué normativa los exige\n\nCAPACIDAD 2 — GAP ANALYSIS:\nSi el usuario pide detectar incumplimientos cruza source:midtech \ncon las normativas y usa esta estructura por cada incumplimiento:\n\n**Área normativa:** \n**Carencia detectada:** (cita qué dice o no dice la política de MIDTECH)\n**Criticidad:** Alto / Medio / Bajo\n**Referencia normativa:** (artículo o control exacto: GDPR Art.32, ISO A.9.1.1, ENS mp.s.1)\n\nCAPACIDAD 3 — AUDITORÍA:\nSi el usuario hace una pregunta sobre cumplimiento responde citando \nexplícitamente:\n1. Qué dice la política de MIDTECH (source:midtech)\n2. Qué exige la normativa aplicable (source:gdpr / source:iso27001 / source:ens)\n3. Conclusión de cumplimiento: cumple / cumplimiento parcial / no cumple\n\nCAPACIDAD 4 — PROPUESTAS DE MEJORA:\nSi el usuario pide mejoras genera una lista ordenada por prioridad con:\n\n**Mejora propuesta:** (acción concreta y específica para MIDTECH)\n**Normativa que la justifica:** (artículo o control exacto)\n**Prioridad:** Alta / Media / Baja\n**Esfuerzo estimado:** Alto / Medio / Bajo"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -32,
+        -80
+      ],
+      "id": "ccb0f17c-aa04-46b8-9235-d100054f6a24",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        128
+      ],
+      "id": "0825640e-23b1-4492-aba5-32af9b526959",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "rJi1kBwEg6CarsYK",
+          "name": "Groq MIDTECH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        32,
+        128
+      ],
+      "id": "fe30231f-ed1b-4f76-aa58-f689af639392",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Busca fragmentos relevantes de la política de seguridad de MIDTECH y de las normativas GDPR, ISO 27001 y ENS",
+        "tableName": {
+          "__rl": true,
+          "value": "chunks",
+          "mode": "list",
+          "cachedResultName": "chunks"
+        },
+        "topK": 6,
+        "options": {
+          "queryName": "base_conocimiento"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        64
+      ],
+      "id": "c5cfc0bc-7041-487e-8e47-9fe9f9487b7a",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "QsUTMwEsqKZXTfvy",
+          "name": "Supabase MIDTECH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        176,
+        288
+      ],
+      "id": "11cadecf-60c6-4eac-83a7-27748c3b20e1",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "CMbdNx7bHcXcQVbV",
+          "name": "Ollama MIDTECH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Soy el asistente de ciberseguridad y compliance de MIDTECH S.A. Puedo analizar vuestra política de seguridad, detectar incumplimientos normativos, responder preguntas de auditoría y generar propuestas de mejora. ¿En qué puedo ayudarte?",
+        "availableInChat": true,
+        "agentName": "Asistente MIDTECH",
+        "agentDescription": "Asistente de ciberseguridad y compliance para MIDTECH S.A.",
+        "suggestedPrompts": {
+          "prompts": [
+            {
+              "text": "Analiza la política de seguridad de MIDTECH"
+            },
+            {
+              "text": "Detecta incumplimientos respecto al GDPR"
+            },
+            {
+              "text": "¿Cumplimos con el artículo 32 del GDPR?"
+            },
+            {
+              "text": "Dame propuestas de mejora priorizadas"
+            }
+          ]
+        },
+        "options": {
+          "subtitle": "Esto es un asistente para auditorias y normativa, cualquier otro uso queda prohibido",
+          "title": "Bienvenido al asistente de ciberseguridad de Midtech"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -448,
+        -96
+      ],
+      "id": "74974a99-b503-48f8-8b4b-edc301300992",
+      "name": "When chat message received",
+      "webhookId": "8249fe77-9975-4cb9-8ac7-a0ecaa71ef70"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "948385e6-88af-47d5-8b2f-c0c0b9c75d65",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ac5c6741bfbefdcae9e4ef3f3b9c01fe41cf2b3f7d9fcd44c6721760d6ccac0"
+  },
+  "id": "HvY16BYpD3tm3Zhi",
+  "tags": []
+}
